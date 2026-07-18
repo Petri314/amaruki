@@ -157,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="admin-export-tips">
               <p>💡 Luego de pegar el código en <code>js/blog-data.js</code>, haz commit y push para publicar.</p>
+              <p>⚠️ Las imágenes seleccionadas localmente (base64) son muy grandes para exportar por código. Para publicación permanente, usa una URL externa (Imgur, Instagram, etc.)</p>
             </div>
           </div>
         </div>
@@ -185,15 +186,19 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
             <div class="admin-form-group">
-              <label>URL de imagen destacada (opcional)</label>
-              <div style="display:flex;gap:8px;align-items:flex-start">
-                <input type="url" id="formImagen" class="admin-input" placeholder="https://ejemplo.com/mi-foto.jpg" style="flex:1" />
-                <button type="button" id="previewImgBtn" class="admin-btn admin-btn-small admin-btn-ghost" style="white-space:nowrap">🔍 Vista</button>
+              <label>Imagen destacada (opcional)</label>
+              <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">
+                <input type="url" id="formImagen" class="admin-input" placeholder="https://ejemplo.com/mi-foto.jpg" style="flex:1;min-width:180px" />
+                <button type="button" id="previewImgBtn" class="admin-btn admin-btn-small admin-btn-ghost" style="white-space:nowrap">🔍 Vista URL</button>
+                <button type="button" id="browseImgBtn" class="admin-btn admin-btn-small admin-btn-outline" style="white-space:nowrap">📁 Examinar</button>
+                <input type="file" id="formImagenFile" accept="image/*" style="display:none" />
+                <button type="button" id="removeImgBtn" class="admin-btn admin-btn-small admin-btn-danger" style="white-space:nowrap;display:none">✕ Quitar</button>
               </div>
-              <div id="imagenPreview" style="display:none;margin-top:8px;border-radius:8px;overflow:hidden;max-height:150px">
+              <div id="imagenPreview" style="display:none;margin-top:8px;border-radius:8px;overflow:hidden;max-height:150px;position:relative">
                 <img id="imagenPreviewSrc" src="" alt="Preview" style="width:100%;height:100%;object-fit:cover" />
               </div>
-              <p class="admin-form-hint">Pega la URL de una imagen (puedes subir fotos a Imgur, Instagram, o usar cualquier URL pública)</p>
+              <div id="fileInfo" class="admin-form-hint" style="display:none"></div>
+              <p class="admin-form-hint">📎 Puedes pegar una URL <strong>o</strong> seleccionar una imagen local</p>
             </div>
             <div class="admin-form-group">
               <label>Extracto (resumen que se ve en la tarjeta)</label>
@@ -236,7 +241,51 @@ document.addEventListener('DOMContentLoaded', () => {
     // New article
     document.getElementById('btnNewArticle')?.addEventListener('click', () => openForm(null));
 
-    // Preview image
+    // Browse local image
+    document.getElementById('browseImgBtn')?.addEventListener('click', () => {
+      document.getElementById('formImagenFile').click();
+    });
+
+    document.getElementById('formImagenFile')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Check size (warn if > 1MB)
+      const maxSize = 3 * 1024 * 1024; // 3MB
+      if (file.size > maxSize) {
+        alert('La imagen es muy grande. El máximo recomendado es 3 MB. La imagen se guardará pero puede ser lenta al cargar.');
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        const dataUrl = ev.target.result;
+        // Set the URL input to the data URL
+        document.getElementById('formImagen').value = dataUrl;
+        // Show preview
+        const preview = document.getElementById('imagenPreview');
+        const img = document.getElementById('imagenPreviewSrc');
+        img.src = dataUrl;
+        preview.style.display = 'block';
+        // Show file info
+        const fileInfo = document.getElementById('fileInfo');
+        fileInfo.textContent = '✅ ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+        fileInfo.style.display = 'block';
+        // Show remove button
+        document.getElementById('removeImgBtn').style.display = '';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Remove image
+    document.getElementById('removeImgBtn')?.addEventListener('click', () => {
+      document.getElementById('formImagen').value = '';
+      document.getElementById('imagenPreview').style.display = 'none';
+      document.getElementById('fileInfo').style.display = 'none';
+      document.getElementById('formImagenFile').value = '';
+      document.getElementById('removeImgBtn').style.display = 'none';
+    });
+
+    // Preview image URL
     document.getElementById('previewImgBtn')?.addEventListener('click', () => {
       const url = document.getElementById('formImagen').value.trim();
       const preview = document.getElementById('imagenPreview');
@@ -244,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (url) {
         img.src = url;
         preview.style.display = 'block';
+        document.getElementById('removeImgBtn').style.display = '';
       } else {
         preview.style.display = 'none';
       }
@@ -303,7 +353,13 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('formTags').value = (article.tags || []).join(', ');
       document.getElementById('formImagen').value = article.imagen || '';
       document.getElementById('imagenPreview').style.display = article.imagen ? 'block' : 'none';
-      if (article.imagen) document.getElementById('imagenPreviewSrc').src = article.imagen;
+      document.getElementById('fileInfo').style.display = 'none';
+      if (article.imagen) {
+        document.getElementById('imagenPreviewSrc').src = article.imagen;
+        document.getElementById('removeImgBtn').style.display = '';
+      } else {
+        document.getElementById('removeImgBtn').style.display = 'none';
+      }
       document.getElementById('formExtracto').value = article.extracto || '';
       document.getElementById('formContenido').value = article.contenido || '';
     } else {
@@ -311,7 +367,10 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('formFecha').value = today();
       document.getElementById('formTags').value = '';
       document.getElementById('formImagen').value = '';
+      document.getElementById('formImagenFile').value = '';
       document.getElementById('imagenPreview').style.display = 'none';
+      document.getElementById('fileInfo').style.display = 'none';
+      document.getElementById('removeImgBtn').style.display = 'none';
       document.getElementById('formExtracto').value = '';
       document.getElementById('formContenido').value = '';
     }

@@ -119,6 +119,26 @@
   background: #F1F5F9;
 }
 
+.admin-btn-outline {
+  background: transparent;
+  color: #1E3A5F;
+  border: 1.5px solid #1E3A5F;
+}
+
+.admin-btn-outline:hover {
+  background: #EBF5FF;
+}
+
+.admin-btn-danger {
+  background: transparent;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+}
+
+.admin-btn-danger:hover {
+  background: #FEF2F2;
+}
+
 .admin-btn-small {
   padding: 0.4rem 0.8rem;
   font-size: 0.75rem;
