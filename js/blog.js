@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════
    AMARUKI — Blog JavaScript
    ═══════════════════════════════════════════════════════
-   - Renderiza lista de artículos
+   - Renderiza lista de artículos (fijos + localStorage)
    - Muestra artículo individual por hash (#/articulo/id)
    - Animaciones, filtros y lectura estimada
    ═══════════════════════════════════════════════════════ */
@@ -10,6 +10,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const blogApp = document.getElementById('blog-app');
   if (!blogApp) return;
+
+  const ADMIN_KEY = 'amaruki_blog_articles';
+
+  // ── Combinar artículos fijos + locales ──
+
+  function getAllArticles() {
+    let localArticles = [];
+    try {
+      const stored = localStorage.getItem(ADMIN_KEY);
+      if (stored) localArticles = JSON.parse(stored);
+    } catch {}
+    return [...localArticles, ...ARTICULOS];
+  }
 
   // ── Helpers ──
 
@@ -42,8 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
       'infancia': '#0891B2',
       'heridas emocionales': '#DC2626',
       'terapia regresiva': '#4F46E5',
+      'constelaciones': '#8B5CF6',
+      'familia': '#EC4899',
+      'reiki': '#F59E0B',
+      'flores de bach': '#10B981',
+      'general': '#64748B',
     };
-    return colors[tag.toLowerCase()] || '#64748B';
+    return colors[tag.toLowerCase().trim()] || '#64748B';
   }
 
   // ── Renderizar Lista ──
@@ -52,6 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     document.title = 'Blog — Amaruki';
     history.replaceState(null, '', window.location.pathname);
+
+    const allArticles = getAllArticles();
 
     let html = `
       <div class="blog-header">
@@ -68,8 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="blog-grid">
     `;
 
-    ARTICULOS.forEach((art, idx) => {
-      const tag = art.tags[0];
+    allArticles.forEach((art, idx) => {
+      const tag = art.tags?.[0] || 'general';
       const tagColor = getTagColor(tag);
       html += `
         <article class="blog-card" data-aos style="transition-delay:${idx * 0.07}s">
@@ -84,12 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="blog-card-body">
             <div class="blog-card-meta">
-              <time>${art.fecha}</time>
+              <time>${art.fecha || ''}</time>
               <span class="blog-card-dot">·</span>
-              <span>${formatLectura(art.contenido)}</span>
+              <span>${formatLectura(art.contenido || '')}</span>
             </div>
-            <h2 class="blog-card-title">${art.titulo}</h2>
-            <p class="blog-card-excerpt">${art.extracto}</p>
+            <h2 class="blog-card-title">${art.titulo || 'Sin título'}</h2>
+            <p class="blog-card-excerpt">${art.extracto || ''}</p>
             <button class="blog-card-link" data-id="${art.id}">
               Seguir leyendo
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -105,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="blog-footer">
           <p>Nuevos artículos cada semana · Síguenos en <a href="https://instagram.com/amaruki333" target="_blank" rel="noopener">@amaruki333</a></p>
+          <p style="margin-top:0.5rem;font-size:0.72rem;color:#CBD5E1"><a href="blog-admin.html" style="color:#94A3B8">⚙️ Admin</a></p>
         </div>
       </div>
     `;
@@ -132,14 +153,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Renderizar Artículo Individual ──
 
   function renderArticulo(id) {
-    const art = ARTICULOS.find(a => a.id === id);
+    const allArticles = getAllArticles();
+    const art = allArticles.find(a => a.id === id);
     if (!art) { renderLista(); return; }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    document.title = `${art.titulo} — Amaruki`;
+    document.title = `${art.titulo || 'Artículo'} — Amaruki`;
     history.replaceState(null, '', `#/articulo/${art.id}`);
 
-    const tagColor = getTagColor(art.tags[0]);
+    const tagColor = getTagColor(art.tags?.[0] || 'general');
 
     let html = `
       <article class="blog-article">
@@ -155,21 +177,21 @@ document.addEventListener('DOMContentLoaded', () => {
           <!-- Header -->
           <header class="blog-article-header">
             <div class="blog-article-tags">
-              ${art.tags.map(t => `<span class="blog-article-tag" style="background:${getTagColor(t)}20;color:${getTagColor(t)}">${t}</span>`).join('')}
+              ${(art.tags || []).map(t => `<span class="blog-article-tag" style="background:${getTagColor(t)}20;color:${getTagColor(t)}">${t}</span>`).join('')}
             </div>
             <h1 class="blog-article-title">${art.titulo}</h1>
             <div class="blog-article-meta">
               <div class="blog-article-author">
                 <div class="blog-article-avatar">PA</div>
                 <div>
-                  <strong>${art.autor}</strong>
+                  <strong>${art.autor || 'Patricio Almendra'}</strong>
                   <span>Terapeuta Integral</span>
                 </div>
               </div>
               <div class="blog-article-meta-right">
-                <time>${art.fecha}</time>
+                <time>${art.fecha || ''}</time>
                 <span class="blog-card-dot">·</span>
-                <span>${formatLectura(art.contenido)}</span>
+                <span>${formatLectura(art.contenido || '')}</span>
               </div>
             </div>
           </header>
@@ -184,13 +206,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <!-- Content -->
           <div class="blog-article-content">
-            ${art.contenido}
+            ${art.contenido || '<p>Artículo en construcción...</p>'}
           </div>
 
           <!-- Tags -->
           <div class="blog-article-footer-tags">
             <span class="blog-article-tags-label">Temas:</span>
-            ${art.tags.map(t => `<span class="blog-article-tag" style="background:${getTagColor(t)}20;color:${getTagColor(t)}">${t}</span>`).join('')}
+            ${(art.tags || []).map(t => `<span class="blog-article-tag" style="background:${getTagColor(t)}20;color:${getTagColor(t)}">${t}</span>`).join('')}
           </div>
 
           <!-- CTA -->
@@ -206,15 +228,15 @@ document.addEventListener('DOMContentLoaded', () => {
           <!-- Navigation -->
           <nav class="blog-article-nav">
             ${(() => {
-              const idx = ARTICULOS.findIndex(a => a.id === art.id);
-              const prev = idx > 0 ? ARTICULOS[idx - 1] : null;
-              const next = idx < ARTICULOS.length - 1 ? ARTICULOS[idx + 1] : null;
+              const idx = allArticles.findIndex(a => a.id === art.id);
+              const prev = idx > 0 ? allArticles[idx - 1] : null;
+              const next = idx < allArticles.length - 1 ? allArticles[idx + 1] : null;
               return `
                 <div class="blog-article-nav-left">
-                  ${prev ? `<a href="#" class="blog-nav-link" data-id="${prev.id}">← ${prev.titulo}</a>` : ''}
+                  ${prev ? `<a href="#" class="blog-nav-link" data-id="${prev.id}">← ${prev.titulo || ''}</a>` : ''}
                 </div>
                 <div class="blog-article-nav-right">
-                  ${next ? `<a href="#" class="blog-nav-link" data-id="${next.id}">${next.titulo} →</a>` : ''}
+                  ${next ? `<a href="#" class="blog-nav-link" data-id="${next.id}">${next.titulo || ''} →</a>` : ''}
                 </div>
               `;
             })()}

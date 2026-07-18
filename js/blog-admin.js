@@ -1,0 +1,414 @@
+/* ═══════════════════════════════════════════════════════
+   AMARUKI — Blog Admin Panel
+   ═══════════════════════════════════════════════════════
+   Crea y gestiona artículos desde el frontend.
+   Los artículos se guardan en localStorage y se renderizan
+   junto con los artículos fijos en el blog.
+   ═══════════════════════════════════════════════════════ */
+
+const ADMIN_KEY = 'amaruki_blog_articles';
+const ADMIN_PASSWORD = 'amaruki2026';
+
+document.addEventListener('DOMContentLoaded', () => {
+  const app = document.getElementById('admin-app');
+  if (!app) return;
+
+  let isAuthenticated = sessionStorage.getItem('amaruki_admin_auth') === 'true';
+  let localArticles = loadLocalArticles();
+  let editingId = null;
+
+  // ── Helpers ──
+
+  function loadLocalArticles() {
+    try {
+      return JSON.parse(localStorage.getItem(ADMIN_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveLocalArticles(articles) {
+    localStorage.setItem(ADMIN_KEY, JSON.stringify(articles));
+    localArticles = articles;
+  }
+
+  function generateId(title) {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || `articulo-${Date.now()}`;
+  }
+
+  function today() {
+    const d = new Date();
+    const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    return `${d.getDate()} ${meses[d.getMonth()]}, ${d.getFullYear()}`;
+  }
+
+  function previewContent(html) {
+    const text = html.replace(/<[^>]*>/g, '');
+    return text.slice(0, 150) + (text.length > 150 ? '...' : '');
+  }
+
+  // ── Render ──
+
+  function render() {
+    if (!isAuthenticated) {
+      renderLogin();
+      return;
+    }
+    renderAdmin();
+  }
+
+  function renderLogin() {
+    app.innerHTML = `
+      <div class="admin-login">
+        <div class="admin-login-card">
+          <div class="admin-login-icon">🔐</div>
+          <h2>Panel de Administración</h2>
+          <p>Ingresa la contraseña para gestionar los artículos del blog.</p>
+          <form id="loginForm">
+            <input type="password" id="passwordInput" placeholder="Contraseña" class="admin-input" autofocus />
+            <button type="submit" class="admin-btn admin-btn-primary">Ingresar</button>
+          </form>
+          <p id="loginError" class="admin-error" style="display:none">Contraseña incorrecta</p>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const pw = document.getElementById('passwordInput').value;
+      if (pw === ADMIN_PASSWORD) {
+        isAuthenticated = true;
+        sessionStorage.setItem('amaruki_admin_auth', 'true');
+        render();
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    });
+  }
+
+  function renderAdmin() {
+    const totalArticulos = localArticles.length + window.ARTICULOS.length;
+
+    app.innerHTML = `
+      <div class="admin-panel">
+        <!-- Header -->
+        <div class="admin-header">
+          <div>
+            <h1 class="admin-title">📝 Administrar Blog</h1>
+            <p class="admin-subtitle">${localArticles.length} artículo${localArticles.length !== 1 ? 's' : ''} local${localArticles.length !== 1 ? 'es' : ''} · ${totalArticulos} en total</p>
+          </div>
+          <div class="admin-header-actions">
+            <button id="btnNewArticle" class="admin-btn admin-btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nuevo artículo
+            </button>
+            <button id="btnLogout" class="admin-btn admin-btn-ghost" title="Cerrar sesión">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabs: Mis artículos locales / Exportar -->
+        <div class="admin-tabs">
+          <button class="admin-tab active" data-tab="local">Mis artículos</button>
+          <button class="admin-tab" data-tab="export">Exportar / Publicar</button>
+        </div>
+
+        <!-- Tab: Local articles list -->
+        <div id="tabLocal" class="admin-tab-content">
+          ${localArticles.length === 0 ? `
+            <div class="admin-empty">
+              <span class="admin-empty-icon">📝</span>
+              <p>Aún no has creado artículos desde el panel.</p>
+              <p style="font-size:0.82rem;color:#94A3B8">Presiona "Nuevo artículo" para empezar.</p>
+            </div>
+          ` : `
+            <div class="admin-list">
+              ${localArticles.map((art, i) => `
+                <div class="admin-article-item" data-index="${i}">
+                  <div class="admin-article-item-left">
+                    <span class="admin-article-item-tag" style="background:${getTagColorAdmin(art.tags[0] || '')}20;color:${getTagColorAdmin(art.tags[0] || '')}">${art.tags[0] || 'sin tag'}</span>
+                    <div>
+                      <strong>${art.titulo}</strong>
+                      <span>${art.fecha} · ${previewContent(art.contenido)}</span>
+                    </div>
+                  </div>
+                  <div class="admin-article-item-actions">
+                    <button class="admin-btn-icon" data-action="edit" data-index="${i}" title="Editar">✏️</button>
+                    <button class="admin-btn-icon" data-action="delete" data-index="${i}" title="Eliminar">🗑️</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+
+        <!-- Tab: Export -->
+        <div id="tabExport" class="admin-tab-content" style="display:none">
+          <div class="admin-export">
+            <h3>Publicar cambios permanentemente</h3>
+            <p>Los artículos locales solo se ven en este dispositivo. Para publicarlos en GitHub Pages, copia este código y agrégalo a <code>js/blog-data.js</code>:</p>
+            <div class="admin-code-block">
+              <pre id="exportCode"></pre>
+              <button id="copyCode" class="admin-btn admin-btn-small">📋 Copiar</button>
+            </div>
+            <div class="admin-export-tips">
+              <p>💡 Luego de pegar el código en <code>js/blog-data.js</code>, haz commit y push para publicar.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form overlay -->
+      <div id="articleFormOverlay" class="admin-overlay" style="display:none">
+        <div class="admin-form-container">
+          <div class="admin-form-header">
+            <h2 id="formTitle">Nuevo artículo</h2>
+            <button id="closeForm" class="admin-btn-icon">✕</button>
+          </div>
+          <form id="articleForm" class="admin-form">
+            <div class="admin-form-group">
+              <label>Título del artículo</label>
+              <input type="text" id="formTitulo" class="admin-input" placeholder="Ej: Cómo la meditación transforma tu cerebro" required />
+            </div>
+            <div class="admin-form-row">
+              <div class="admin-form-group">
+                <label>Fecha</label>
+                <input type="text" id="formFecha" class="admin-input" value="${today()}" />
+              </div>
+              <div class="admin-form-group">
+                <label>Tags (separados por coma)</label>
+                <input type="text" id="formTags" class="admin-input" placeholder="meditación, bienestar" />
+              </div>
+            </div>
+            <div class="admin-form-group">
+              <label>Extracto (resumen que se ve en la tarjeta)</label>
+              <textarea id="formExtracto" class="admin-textarea" rows="2" placeholder="Breve descripción del artículo..."></textarea>
+            </div>
+            <div class="admin-form-group">
+              <label>Contenido del artículo (HTML)</label>
+              <p class="admin-form-hint">Puedes usar: &lt;p&gt;, &lt;h2&gt;, &lt;h3&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;&lt;li&gt;, &lt;blockquote&gt;</p>
+              <textarea id="formContenido" class="admin-textarea admin-textarea-lg" rows="12" placeholder="<p>Escribe aquí el contenido del artículo...</p>"></textarea>
+            </div>
+            <div class="admin-form-actions">
+              <button type="button" id="cancelForm" class="admin-btn admin-btn-ghost">Cancelar</button>
+              <button type="submit" id="saveArticle" class="admin-btn admin-btn-primary">💾 Guardar artículo</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    // ── Event listeners ──
+
+    // Logout
+    document.getElementById('btnLogout')?.addEventListener('click', () => {
+      isAuthenticated = false;
+      sessionStorage.removeItem('amaruki_admin_auth');
+      render();
+    });
+
+    // Tabs
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
+        document.getElementById(`tab${tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)}`).style.display = 'block';
+        if (tab.dataset.tab === 'export') generateExportCode();
+      });
+    });
+
+    // New article
+    document.getElementById('btnNewArticle')?.addEventListener('click', () => openForm(null));
+
+    // Close form
+    document.getElementById('closeForm')?.addEventListener('click', closeForm);
+    document.getElementById('cancelForm')?.addEventListener('click', closeForm);
+
+    // Form submit
+    document.getElementById('articleForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveArticleFromForm();
+    });
+
+    // Edit/Delete buttons
+    document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.index);
+        openForm(localArticles[idx], idx);
+      });
+    });
+
+    document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.index);
+        if (confirm(`¿Eliminar "${localArticles[idx].titulo}"?`)) {
+          const articles = loadLocalArticles();
+          articles.splice(idx, 1);
+          saveLocalArticles(articles);
+          render();
+        }
+      });
+    });
+
+    // Copy code
+    document.getElementById('copyCode')?.addEventListener('click', () => {
+      const code = document.getElementById('exportCode');
+      if (code) {
+        navigator.clipboard.writeText(code.textContent).then(() => {
+          const btn = document.getElementById('copyCode');
+          btn.textContent = '✅ Copiado';
+          setTimeout(() => { btn.textContent = '📋 Copiar'; }, 2000);
+        });
+      }
+    });
+  }
+
+  function openForm(article, index) {
+    editingId = index !== undefined && index !== null ? index : null;
+    const overlay = document.getElementById('articleFormOverlay');
+    document.getElementById('formTitle').textContent = editingId !== null ? 'Editar artículo' : 'Nuevo artículo';
+
+    if (article) {
+      document.getElementById('formTitulo').value = article.titulo || '';
+      document.getElementById('formFecha').value = article.fecha || today();
+      document.getElementById('formTags').value = (article.tags || []).join(', ');
+      document.getElementById('formExtracto').value = article.extracto || '';
+      document.getElementById('formContenido').value = article.contenido || '';
+    } else {
+      document.getElementById('formTitulo').value = '';
+      document.getElementById('formFecha').value = today();
+      document.getElementById('formTags').value = '';
+      document.getElementById('formExtracto').value = '';
+      document.getElementById('formContenido').value = '';
+    }
+
+    overlay.style.display = 'flex';
+    document.getElementById('formTitulo').focus();
+  }
+
+  function closeForm() {
+    document.getElementById('articleFormOverlay').style.display = 'none';
+    editingId = null;
+  }
+
+  function saveArticleFromForm() {
+    const titulo = document.getElementById('formTitulo').value.trim();
+    if (!titulo) return;
+
+    const tags = document.getElementById('formTags').value.split(',').map(t => t.trim()).filter(Boolean);
+    const article = {
+      id: generateId(titulo),
+      titulo,
+      extracto: document.getElementById('formExtracto').value.trim() || previewContent(document.getElementById('formContenido').value),
+      fecha: document.getElementById('formFecha').value.trim() || today(),
+      autor: 'Patricio Almendra',
+      imagen: '',
+      tags: tags.length ? tags : ['general'],
+      contenido: document.getElementById('formContenido').value || '<p>Artículo en construcción...</p>',
+    };
+
+    const articles = loadLocalArticles();
+    if (editingId !== null && editingId < articles.length) {
+      article.id = articles[editingId].id; // Keep same ID
+      articles[editingId] = article;
+    } else {
+      articles.push(article);
+    }
+
+    saveLocalArticles(articles);
+    closeForm();
+    render();
+  }
+
+  function generateExportCode() {
+    var codeEl = document.getElementById('exportCode');
+    if (!codeEl) return;
+
+    var articles = loadLocalArticles();
+    if (articles.length === 0) {
+      codeEl.textContent = '// No hay artículos locales para exportar.\n// Crea algunos desde la pestaña "Mis artículos".';
+      return;
+    }
+
+    var result = '// ═══ Artículos creados desde el panel admin ═══\n';
+    result += '// Copia y pega esto en js/blog-data.js dentro del array ARTICULOS\n\n';
+
+    for (var i = 0; i < articles.length; i++) {
+      var art = articles[i];
+      result += '  {\n';
+      result += "    id: '" + escapeJs(art.id) + "',\n";
+      result += "    titulo: '" + escapeJs(art.titulo) + "',\n";
+      result += "    extracto: '" + escapeJs(art.extracto) + "',\n";
+      result += "    fecha: '" + escapeJs(art.fecha) + "',\n";
+      result += "    autor: '" + escapeJs(art.autor) + "',\n";
+      result += "    imagen: '',\n";
+      result += '    tags: [';
+      for (var j = 0; j < art.tags.length; j++) {
+        if (j > 0) result += ', ';
+        result += "'" + escapeJs(art.tags[j]) + "'";
+      }
+      result += '],\n';
+      result += '    contenido: `\n';
+      result += indentHtml(art.contenido || '');
+      result += '\n    `,\n  }';
+      if (i < articles.length - 1) {
+        result += ',\n\n';
+      } else {
+        result += ',';
+      }
+    }
+
+    codeEl.textContent = result;
+  }
+
+  function escapeJs(str) {
+    return (str || '').replace(/'/g, "\\'").replace(/\n/g, ' ').replace(/`/g, '\\`');
+  }
+
+  function indentHtml(html) {
+    if (!html) return '';
+    var lines = html.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+      lines[i] = '      ' + lines[i];
+    }
+    return lines.join('\n');
+  }
+
+  function getTagColorAdmin(tag) {
+    const colors = {
+      'mindfulness': '#0D9488',
+      'bienestar': '#059669',
+      'meditación': '#6366F1',
+      'meditacion': '#6366F1',
+      'terapia transpersonal': '#1E3A5F',
+      'crecimiento': '#D97706',
+      'autoconocimiento': '#7C3AED',
+      'ansiedad': '#DC2626',
+      'pnl': '#0891B2',
+      'herramientas': '#4F46E5',
+      'sueño': '#6366F1',
+      'rutina': '#059669',
+      'salud': '#16A34A',
+      'gestalt': '#B45309',
+      'terapia': '#1E3A5F',
+      'conciencia': '#0D9488',
+      'presente': '#D97706',
+      'sanación': '#7C3AED',
+      'sanacion': '#7C3AED',
+      'infancia': '#0891B2',
+      'heridas emocionales': '#DC2626',
+      'terapia regresiva': '#4F46E5',
+      'constelaciones': '#8B5CF6',
+      'familia': '#EC4899',
+      'reiki': '#F59E0B',
+      'flores de bach': '#10B981',
+      'general': '#64748B',
+    };
+    return colors[tag.toLowerCase().trim()] || '#64748B';
+  }
+});
