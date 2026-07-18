@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog — Amaruki</title>
+  <meta name="description" content="Blog de Amaruki: artículos sobre terapia transpersonal, mindfulness, gestalt, hipnosis y bienestar integral." />
+  <meta property="og:title" content="Blog — Amaruki" />
+  <meta property="og:description" content="Artículos de bienestar y crecimiento personal para tu camino de sanación y autoconocimiento." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://petri314.github.io/amaruki/blog" />
+  <link rel="icon" type="image/jpeg" href="images/logo.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="css/blog.css" />
+</head>
+<body>
+
+  <!-- ═══ NAV ═══ -->
+  <nav class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-brand">
+        <img src="images/logo.jpg" alt="Amaruki" class="nav-logo-img" />
+        <span class="nav-name">Amaruki</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html" class="nav-link">Inicio</a>
+        <a href="index.html#servicios" class="nav-link">Servicios</a>
+        <a href="index.html#sobre-mi" class="nav-link">Sobre mí</a>
+        <a href="blog.html" class="nav-link" style="color:#1E3A5F;font-weight:600">Blog</a>
+        <a href="index.html#faq" class="nav-link">FAQ</a>
+        <a href="https://wa.me/56972347776" class="nav-cta" target="_blank" rel="noopener">Agendar sesión</a>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ═══ BLOG APP ═══ -->
+  <main id="blog-app">
+    <!-- El JS renderiza aquí la lista o el artículo -->
+  </main>
+
+  <!-- ═══ WHATSAPP FLOATING BUTTON ═══ -->
+  <a href="https://wa.me/56972347776" class="whatsapp-float" target="_blank" rel="noopener noreferrer" aria-label="Chatea por WhatsApp">
+    <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.134.298-.347.446-.562.149-.215.223-.4.298-.648.075-.248.024-.467-.025-.62-.05-.155-.51-1.406-.694-1.92-.186-.514-.372-.49-.533-.49-.148 0-.315 0-.481.032-.148.03-.412.186-.537.495-.148.32-1.167 1.14-1.167 2.78 0 1.64 1.194 3.223 1.362 3.445.168.222 2.348 3.587 5.69 5.028 1.233.534 2.193.66 2.954.715.34.025.648-.027.874-.08.277-.064.66-.265.803-.493.14-.222.11-.423.07-.58-.04-.156-.204-.228-.415-.33z"/>
+    </svg>
+    <span class="whatsapp-tooltip">Escríbeme por WhatsApp</span>
+  </a>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <svg width="24" height="24" viewBox="0 0 100 100" fill="none">
+            <circle cx="50" cy="50" r="48" fill="#7C3AED" opacity="0.15"/>
+            <path d="M50 25 L60 45 L50 75 L40 45 Z" fill="#7C3AED" opacity="0.6"/>
+            <circle cx="50" cy="40" r="5" fill="#7C3AED"/>
+          </svg>
+          <span class="footer-name">Amaruki</span>
+          <p class="footer-tagline">Terapia Transpersonal &amp; Bienestar Integral</p>
+        </div>
+        <div class="footer-links">
+          <a href="index.html">Inicio</a>
+          <a href="index.html#servicios">Servicios</a>
+          <a href="index.html#sobre-mi">Sobre mí</a>
+          <a href="blog.html">Blog</a>
+          <a href="index.html#faq">FAQ</a>
+        </div>
+        <div class="footer-contact">
+          <a href="https://wa.me/56972347776" target="_blank" rel="noopener">WhatsApp</a>
+          <a href="mailto:amaruki333@gmail.com">amaruki333@gmail.com</a>
+          <a href="https://instagram.com/amaruki333" target="_blank" rel="noopener">@amaruki333</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Amaruki · Terapeuta Integral · Centro Alma · OTEC</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/blog-data.js"></script>
+  <script src="js/blog.js"></script>
+</body>
+</html>
