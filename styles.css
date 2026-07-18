@@ -98,8 +98,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .nav-brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.nav-logo { transition: transform 0.3s; }
-.nav-brand:hover .nav-logo { transform: rotate(-10deg) scale(1.05); }
+.nav-logo-img {
+  width: 32px; height: 32px; border-radius: 50%;
+  object-fit: cover; transition: transform 0.3s;
+}
+.nav-brand:hover .nav-logo-img { transform: scale(1.1); }
 .nav-name {
   font-size: 1.1rem; font-weight: 700; letter-spacing: -0.03em;
   color: var(--text); font-family: var(--font-display);
