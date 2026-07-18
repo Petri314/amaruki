@@ -399,6 +399,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   min-width: 260px;
 }
 .sobre-card-icon { margin-bottom: 1rem; }
+.sobre-logo {
+  width: 120px; height: 120px; border-radius: 50%;
+  object-fit: cover; border: 3px solid var(--primary-bg);
+  box-shadow: 0 4px 20px rgba(124,58,237,0.15);
+}
 .sobre-card h3 {
   font-family: var(--font-display); font-size: 1.5rem;
   color: var(--text); margin-bottom: 0.3rem;
