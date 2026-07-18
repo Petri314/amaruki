@@ -129,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Render ──
 
   function render() {
+    destroyEditor(); // Destroy Quill before replacing DOM
     if (!isAuthenticated) {
       renderLogin();
       return;
@@ -292,9 +293,9 @@ document.addEventListener('DOMContentLoaded', () => {
               <textarea id="formExtracto" class="admin-textarea" rows="2" placeholder="Breve descripción del artículo..."></textarea>
             </div>
             <div class="admin-form-group">
-              <label>Contenido del artículo (HTML)</label>
-              <p class="admin-form-hint">Puedes usar: &lt;p&gt;, &lt;h2&gt;, &lt;h3&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;&lt;li&gt;, &lt;blockquote&gt;</p>
-              <textarea id="formContenido" class="admin-textarea admin-textarea-lg" rows="12" placeholder="<p>Escribe aquí el contenido del artículo...</p>"></textarea>
+              <label>Contenido del artículo</label>
+              <p class="admin-form-hint">Usa las herramientas de formato para escribir el contenido</p>
+              <div id="formContenidoEditor" class="admin-quill-editor"></div>
             </div>
             <div class="admin-form-actions">
               <button type="button" id="cancelForm" class="admin-btn admin-btn-ghost">Cancelar</button>
@@ -550,6 +551,37 @@ document.addEventListener('DOMContentLoaded', () => {
     return await publicarEnGitHub(article, token);
   }
 
+  function destroyEditor() {
+    if (window.quillEditor) {
+      window.quillEditor.destroy();
+      window.quillEditor = null;
+    }
+  }
+
+  function initEditor(content) {
+    destroyEditor();
+    var editorEl = document.getElementById('formContenidoEditor');
+    if (!editorEl) return;
+
+    window.quillEditor = new Quill(editorEl, {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ 'header': [2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          ['blockquote', 'link'],
+          ['clean']
+        ],
+      },
+      placeholder: 'Escribe aquí el contenido del artículo...',
+    });
+
+    if (content) {
+      window.quillEditor.root.innerHTML = content;
+    }
+  }
+
   function openForm(article, index) {
     editingId = index !== undefined && index !== null ? index : null;
     const overlay = document.getElementById('articleFormOverlay');
@@ -569,7 +601,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('removeImgBtn').style.display = 'none';
       }
       document.getElementById('formExtracto').value = article.extracto || '';
-      document.getElementById('formContenido').value = article.contenido || '';
+      // Init Quill with content
+      showOverlayAndInitEditor(article.contenido || '');
     } else {
       document.getElementById('formTitulo').value = '';
       document.getElementById('formFecha').value = today();
@@ -580,16 +613,38 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('fileInfo').style.display = 'none';
       document.getElementById('removeImgBtn').style.display = 'none';
       document.getElementById('formExtracto').value = '';
-      document.getElementById('formContenido').value = '';
+      // Init empty Quill
+      showOverlayAndInitEditor('');
     }
+  }
 
+  function showOverlayAndInitEditor(content) {
+    const overlay = document.getElementById('articleFormOverlay');
     overlay.style.display = 'flex';
-    document.getElementById('formTitulo').focus();
+    // Inicializar Quill después de mostrar el overlay (necesita ser visible)
+    setTimeout(function () {
+      initEditor(content);
+      document.getElementById('formTitulo').focus();
+    }, 50);
   }
 
   function closeForm() {
     document.getElementById('articleFormOverlay').style.display = 'none';
     editingId = null;
+    destroyEditor();
+  }
+
+  // Obtiene el HTML del editor Quill
+  function getEditorHTML() {
+    if (window.quillEditor) {
+      var html = window.quillEditor.root.innerHTML;
+      // Si solo hay párrafos vacíos, devolver contenido por defecto
+      if (html === '<p><br></p>' || html === '<p></p>' || !html.trim()) {
+        return '<p>Artículo en construcción...</p>';
+      }
+      return html;
+    }
+    return '<p>Artículo en construcción...</p>';
   }
 
   // Extrae los datos del formulario como objeto artículo
@@ -599,15 +654,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tags = document.getElementById('formTags').value.split(',').map(t => t.trim()).filter(Boolean);
     const imagen = document.getElementById('formImagen').value.trim();
+    const contenido = getEditorHTML();
     return {
       id: generateId(titulo),
       titulo,
-      extracto: document.getElementById('formExtracto').value.trim() || previewContent(document.getElementById('formContenido').value),
+      extracto: document.getElementById('formExtracto').value.trim() || previewContent(contenido),
       fecha: document.getElementById('formFecha').value.trim() || today(),
       autor: 'Patricio Almendra',
       imagen: imagen,
       tags: tags.length ? tags : ['general'],
-      contenido: document.getElementById('formContenido').value || '<p>Artículo en construcción...</p>',
+      contenido: contenido,
     };
   }
 

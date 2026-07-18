@@ -557,6 +557,89 @@
   border: 1px solid #FDE68A;
 }
 
+/* ── Quill Editor ── */
+.admin-quill-editor {
+  min-height: 280px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.admin-quill-editor .ql-container {
+  min-height: 220px;
+  font-size: 0.92rem;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.admin-quill-editor .ql-editor {
+  min-height: 220px;
+  line-height: 1.7;
+  color: #0F172A;
+}
+
+.admin-quill-editor .ql-editor h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #0F172A;
+}
+
+.admin-quill-editor .ql-editor h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 1.2rem;
+  margin-bottom: 0.4rem;
+  color: #1E3A5F;
+}
+
+.admin-quill-editor .ql-editor blockquote {
+  border-left: 3px solid #1E3A5F;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #475569;
+  font-style: italic;
+}
+
+.admin-quill-editor .ql-toolbar {
+  border-radius: 8px 8px 0 0;
+  border: 1.5px solid #E2E8F0;
+  background: #F8FAFC;
+}
+
+.admin-quill-editor .ql-container {
+  border-radius: 0 0 8px 8px;
+  border: 1.5px solid #E2E8F0;
+  border-top: none;
+}
+
+.admin-quill-editor .ql-toolbar button:hover,
+.admin-quill-editor .ql-toolbar button.ql-active {
+  color: #1E3A5F !important;
+}
+
+.admin-quill-editor .ql-toolbar .ql-stroke {
+  stroke: #64748B;
+}
+
+.admin-quill-editor .ql-toolbar .ql-fill {
+  fill: #64748B;
+}
+
+.admin-quill-editor .ql-toolbar button:hover .ql-stroke,
+.admin-quill-editor .ql-toolbar button.ql-active .ql-stroke {
+  stroke: #1E3A5F !important;
+}
+
+.admin-quill-editor .ql-toolbar button:hover .ql-fill,
+.admin-quill-editor .ql-toolbar button.ql-active .ql-fill {
+  fill: #1E3A5F !important;
+}
+
+.admin-quill-editor .ql-editor.ql-blank::before {
+  color: #94A3B8;
+  font-style: normal;
+}
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .admin-header {
