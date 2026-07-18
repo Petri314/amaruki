@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           ${art.imagen ? `
             <img class="blog-article-img-real" src="${art.imagen}" alt="${art.titulo}" />
-          : `
+          ` : `
             <div class="blog-article-image" style="background:linear-gradient(135deg, ${tagColor}20, ${tagColor}08)">
               <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="${tagColor}" stroke-width="1">
                 <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
