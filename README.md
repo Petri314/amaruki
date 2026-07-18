@@ -1,66 +1,149 @@
-# Amaruki 🌸
+# Amaruki 🌿✨
 
-Landing page profesional para **Terapia Transpersonal & Bienestar Integral**.
+**Amaru** (serpiente mítica aimara que renace) + **Ki** (energía vital japonesa)
 
-Sitio web personal para promocionar los servicios de Terapeuta Integral con mención en Psicología Transpersonal, formado en Centro Alma (Santiago, Chile).
+Landing page profesional para **Terapia Transpersonal & Bienestar Integral** de **Patricio Almendra Zuñiga**, Terapeuta Integral formado en Centro Alma (Santiago, Chile).
 
-## 🚀 Cómo usar
+🌐 **Publicado en:** https://petri314.github.io/amaruki
 
-Solo abre `index.html` en tu navegador:
+---
 
-```bash
-open index.html
-# o simplemente haz doble clic en el archivo
+## 📋 Estado del proyecto
+
+### ✅ Datos configurados
+
+| Dato | Valor |
+|------|-------|
+| **Nombre** | Patricio Almendra Zuñiga |
+| **WhatsApp** | [+569 7234 7776](https://wa.me/56972347776) |
+| **Email** | amaruki333@gmail.com |
+| **Instagram** | [@amaruki333](https://instagram.com/amaruki333) |
+| **Modalidad** | Online vía Zoom |
+
+### ✅ Integraciones activas
+
+- **Formulario de contacto:** Listo para Formspree ([ver activación](#-activar-formulario-formspree))
+- **GitHub Pages:** Publicado en `https://petri314.github.io/amaruki`
+
+### ⏳ Pendiente
+
+- Reemplazar testimonios placeholder por reales
+- Agregar foto profesional en "Sobre mí"
+- Activar Formspree (crear cuenta + reemplazar `TU_FORM_ID`)
+- Comprar dominio `.cl` si lo deseas
+
+---
+
+## 🎨 Identidad visual
+
+### Paleta de colores
+
+El diseño honra el significado del nombre **Amaruki**:
+
+```
+🌿 Esmeralda  #059669  →  Amaru: la serpiente que renace, transformación
+✨ Oro        #D97706  →  Ki: la energía vital, el sol interior
+🏺 Terracota  #B45309  →  Raíces andinas, tierra
+🌲 Bosque     #064E3B  →  La profundidad, lo sagrado
 ```
 
-## 📋 Antes de publicar
+### Tipografía
 
-### 1. Tu número de WhatsApp
-Reemplaza `569XXXXXXXX` en `main.js` con tu número real:
+| Estilo | Fuente |
+|--------|--------|
+| Títulos | **Playfair Display** (serif elegante) |
+| Textos | **Inter** (sans-serif moderna) |
 
-```js
-const WHATSAPP_NUMBER = '569XXXXXXXX'; // → tu número
-```
+### Animaciones
 
-El número aparece en 5 lugares (hero, sección contacto, formulario, footer, botón flotante), pero con la centralización en JS solo necesitas cambiarlo una vez.
+| Animación | Descripción |
+|-----------|-------------|
+| 🐍 `serpentineWave` | Línea dorada ondulante en el hero |
+| 💫 `scaleIn` | Entrada con escala en elementos destacados |
+| 🟢 `glowEmerald` | Brillo pulsante esmeralda |
+| 🔄 `morphShape` | Formas orgánicas mutantes en el fondo |
+| 📜 Scroll reveal | 5 variantes: `data-aos`, `data-aos-scale`, `data-aos-left`, `data-aos-right`, `data-aos-zoom` |
 
-### 2. Tu email
-Reemplaza `hola@amaruki.cl` en `index.html` con tu correo real. Aparece en:
-- Sección de contacto
-- Footer
+---
 
-### 3. URL del sitio
-Actualiza `https://amaruki.cl` en el meta tag `og:url` del `<head>` si tienes un dominio real.
-
-### 4. Testimonios
-Los testimonios actuales son placeholder. Reemplázalos con testimonios reales de tus pacientes (con su autorización).
-
-### 5. Formulario de contacto
-El formulario actualmente solo simula el envío exitoso. Para hacerlo funcional puedes:
-- Conectarlo a [Formspree](https://formspree.io/) (gratuito)
-- Usar un servicio como [Web3Forms](https://web3forms.com/)
-- O integrarlo con tu backend
-
-## 🎨 Personalización
-
-- **Colores**: Las variables CSS están en `:root` en `styles.css` — cambia `--primary`, `--sky`, etc.
-- **Fuentes**: Inter (textos) + Playfair Display (títulos) desde Google Fonts.
-- **Contenido**: Todo el copy está en `index.html`, fácil de editar.
-
-## 📁 Estructura
+## 📁 Estructura del proyecto
 
 ```
 amaruki/
-├── index.html    → Página principal
-├── styles.css    → Estilos completos
-├── main.js       → Interacciones (nav, FAQ, formulario, animaciones)
-└── README.md     → Este archivo
+├── index.html       → Página principal (estructura y contenido)
+├── styles.css       → Estilos completos (paleta, animaciones, responsive)
+├── main.js          → Interacciones (nav, scroll, FAQ, formulario, animaciones)
+├── images/
+│   └── logo.jpg     → Logo de Amaruki
+├── .gitignore       → Archivos ignorados por git
+└── README.md        → Esta documentación
 ```
 
-## 🛠 Hecho con
+---
+
+## 🔧 Cómo modificar
+
+### Contenido
+
+Todo el texto de la página está en `index.html`. Busca la sección que quieras modificar usando los comentarios HTML:
+
+```html
+<!-- ═══ HERO ═══ -->
+<!-- ═══ SERVICIOS ═══ -->
+<!-- ═══ SOBRE MÍ ═══ -->
+```
+
+### Colores
+
+Las variables de color están en `:root` al inicio de `styles.css`. Cambia los valores hex para personalizar:
+
+```css
+:root {
+  --primary: #059669;       /* Color principal */
+  --primary-dark: #047857;  /* Variante oscura */
+  --gold: #D97706;         /* Acento dorado */
+  --terracotta: #B45309;   /* Acento terracota */
+}
+```
+
+---
+
+## 🚀 Activar formulario (Formspree)
+
+Para que el formulario de contacto envíe correos de verdad:
+
+1. Ve a [formspree.io](https://formspree.io/) y crea cuenta gratis con `amaruki333@gmail.com`
+2. Crea un nuevo formulario
+3. Copia el **Form ID** que te dan (ej: `xyzabcde`)
+4. En `index.html`, busca `TU_FORM_ID` y reemplázalo:
+
+```html
+<form action="https://formspree.io/f/TU_FORM_ID" ...>
+<!-- →  https://formspree.io/f/xyzabcde -->
+```
+
+**Plan gratuito:** 50 envíos/mes — suficiente para empezar.
+
+---
+
+## 🌐 Publicar cambios
+
+```bash
+cd amaruki
+git add -A
+git commit -m "Descripción del cambio"
+git push
+```
+
+GitHub Pages se actualiza automáticamente en 1-2 minutos.
+
+---
+
+## 🛠 Tecnologías
 
 - HTML semántico
-- CSS moderno (flexbox, grid, animaciones, variables)
-- JavaScript vanilla (Intersection Observer para scroll)
-- Diseño responsive
+- CSS moderno (Flexbox, Grid, custom properties, animaciones)
+- JavaScript vanilla (Intersection Observer, Fetch API)
+- Formspree (backend de formulario)
+- GitHub Pages (hosting)
 - Google Fonts
