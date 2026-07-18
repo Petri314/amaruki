@@ -109,65 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  /* ── CONTACT FORM (Formspree) ── */
-  const contactForm = document.getElementById('contactForm');
-  const formExito = document.getElementById('formExito');
-  const formError = document.getElementById('formError');
-  const formNota = document.getElementById('formNota');
-  const submitBtn = document.getElementById('formSubmitBtn');
-
-  if (contactForm) {
-    contactForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      // Verificar que el FORM_ID fue configurado
-      const action = contactForm.getAttribute('action');
-      if (!action || action.includes('TU_FORM_ID')) {
-        formError.textContent = '⚠️ El formulario aún no está configurado. Sigue las instrucciones en el código para conectarlo.';
-        formError.style.display = 'block';
-        return;
-      }
-
-      // Estado de carga
-      const originalBtnText = submitBtn.innerHTML;
-      submitBtn.innerHTML = 'Enviando...';
-      submitBtn.disabled = true;
-      formError.style.display = 'none';
-
-      try {
-        const formData = new FormData(contactForm);
-        const data = Object.fromEntries(formData.entries());
-
-        const response = await fetch(action, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (response.ok) {
-          // Éxito — mostrar mensaje de agradecimiento
-          contactForm.style.display = 'none';
-          formExito.style.display = 'block';
-        } else {
-          throw new Error('Error al enviar');
-        }
-      } catch (err) {
-        // Error — restaurar botón y mostrar mensaje con fallback a WhatsApp
-        submitBtn.innerHTML = originalBtnText;
-        submitBtn.disabled = false;
-        formError.style.display = 'block';
-
-        if (contactForm.getAttribute('action')?.includes('TU_FORM_ID')) {
-          formError.textContent = '⚠️ El formulario no está configurado. Reemplaza TU_FORM_ID en el HTML.';
-        } else {
-          formError.innerHTML = 'Hubo un error al enviar tu mensaje. Puedes escribirme directo por <a href="https://wa.me/56972347776">WhatsApp</a>.';
-        }
-      }
-    });
-  }
 
   /* ── WHATSAPP NUMBER CONFIGURATION ── */
   // 🔧 Tu número de WhatsApp (código país + número)
