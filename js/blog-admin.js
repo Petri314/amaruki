@@ -379,6 +379,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return lines.join('\n');
   }
 
+  // ── Iniciar ──
+  render();
+
   function getTagColorAdmin(tag) {
     const colors = {
       'mindfulness': '#0D9488',
