@@ -5,7 +5,7 @@
    al array ARTICULOS con los campos requeridos.
    ═══════════════════════════════════════════════════════ */
 
-const ARTICULOS = [
+var ARTICULOS = [
   {
     id: 'mindfulness-cotidiano',
     titulo: 'Mindfulness en la vida cotidiana: cómo empezar',
