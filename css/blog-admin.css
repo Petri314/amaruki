@@ -462,6 +462,101 @@
   padding: 0;
 }
 
+/* ── GitHub Token Bar ── */
+.admin-github-bar {
+  padding: 0.5rem 2rem;
+  background: #FFFBEB;
+  border-bottom: 1px solid #FDE68A;
+}
+
+.admin-github-bar-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.admin-github-status {
+  font-size: 0.72rem;
+  color: #94A3B8;
+  white-space: nowrap;
+}
+
+.admin-github-ok {
+  color: #059669;
+}
+
+/* ── Publish Button ── */
+.admin-btn-publish-btn {
+  background: #059669;
+  color: white;
+  border: none;
+}
+
+.admin-btn-publish-btn:hover {
+  background: #047857;
+}
+
+.admin-btn-publish-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-btn-publish {
+  font-size: 1rem;
+  transition: transform 0.15s;
+}
+
+.admin-btn-publish:hover {
+  transform: scale(1.15);
+}
+
+.admin-btn-publish:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Toast Notifications ── */
+.admin-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  padding: 0.8rem 1.2rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  z-index: 9999;
+  max-width: 380px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  transform: translateY(20px);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.admin-toast-visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.admin-toast-success {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.admin-toast-error {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.admin-toast-warning {
+  background: #FFFBEB;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .admin-header {

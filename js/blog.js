@@ -6,14 +6,29 @@
    - Animaciones, filtros y lectura estimada
    ═══════════════════════════════════════════════════════ */
 
-document.addEventListener('DOMContentLoaded', () => {
+var ARTICULOS_PUBLICADOS = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
 
   const blogApp = document.getElementById('blog-app');
   if (!blogApp) return;
 
   const ADMIN_KEY = 'amaruki_blog_articles';
 
-  // ── Combinar artículos fijos + locales ──
+  // ── Cargar artículos publicados desde GitHub ──
+
+  async function loadArticulosPublicados() {
+    try {
+      const resp = await fetch('data/articulos.json?v=' + Date.now());
+      if (resp.ok) {
+        ARTICULOS_PUBLICADOS = await resp.json();
+      }
+    } catch (e) {
+      console.warn('No se pudieron cargar artículos publicados:', e);
+    }
+  }
+
+  // ── Combinar artículos: publicados (GitHub) + locales (localStorage) + fijos ──
 
   function getAllArticles() {
     let localArticles = [];
@@ -21,7 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const stored = localStorage.getItem(ADMIN_KEY);
       if (stored) localArticles = JSON.parse(stored);
     } catch {}
-    return [...localArticles, ...ARTICULOS];
+    // Orden: primero los publicados (para que aparezcan primero), luego locales, luego fijos
+    return [...ARTICULOS_PUBLICADOS, ...localArticles, ...ARTICULOS];
   }
 
   // ── Helpers ──
@@ -289,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Inicializar ──
 
+  await loadArticulosPublicados();
   handleRoute();
   window.addEventListener('hashchange', handleRoute);
 });

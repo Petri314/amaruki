@@ -8,6 +8,10 @@
 
 const ADMIN_KEY = 'amaruki_blog_articles';
 const ADMIN_PASSWORD = 'amaruki2026';
+const GITHUB_OWNER = 'Petri314';
+const GITHUB_REPO = 'amaruki';
+const GITHUB_PATH = 'data/articulos.json';
+const GITHUB_BRANCH = 'master'; // o 'main'
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.getElementById('admin-app');
@@ -18,6 +22,78 @@ document.addEventListener('DOMContentLoaded', () => {
   let editingId = null;
 
   // ── Helpers ──
+
+  function getGitHubToken() {
+    return sessionStorage.getItem('amaruki_github_token') || '';
+  }
+
+  function setGitHubToken(token) {
+    sessionStorage.setItem('amaruki_github_token', token);
+  }
+
+  // ── GitHub API ──
+
+  async function getArticulosJsonSha(token) {
+    try {
+      const resp = await fetch(
+        `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_PATH}?ref=${GITHUB_BRANCH}`,
+        { headers: { Authorization: 'token ' + token, Accept: 'application/vnd.github.v3+json' } }
+      );
+      if (!resp.ok) return { sha: null, articles: [] };
+      const data = await resp.json();
+      const content = atob(data.content.replace(/\n/g, ''));
+      const articles = JSON.parse(content);
+      return { sha: data.sha, articles: Array.isArray(articles) ? articles : [] };
+    } catch (e) {
+      return { sha: null, articles: [] };
+    }
+  }
+
+  async function publicarEnGitHub(article, token) {
+    // Obtener estado actual del archivo
+    const { sha, articles } = await getArticulosJsonSha(token);
+    if (sha === null) {
+      throw new Error('No se pudo leer data/articulos.json. Verifica el token y que el archivo exista.');
+    }
+
+    // Verificar si ya existe un artículo con el mismo ID
+    const exists = articles.findIndex(a => a.id === article.id);
+    if (exists >= 0) {
+      articles[exists] = article; // Actualizar
+    } else {
+      articles.unshift(article); // Agregar al inicio (más reciente primero)
+    }
+
+    // Codificar a base64
+    const jsonStr = JSON.stringify(articles, null, 2);
+    const content = btoa(unescape(encodeURIComponent(jsonStr)));
+
+    // Hacer commit
+    const resp = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: 'token ' + token,
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: '📝 Nuevo artículo: ' + article.titulo,
+          content: content,
+          sha: sha,
+          branch: GITHUB_BRANCH,
+        }),
+      }
+    );
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.message || 'Error al publicar en GitHub (HTTP ' + resp.status + ')');
+    }
+
+    return true;
+  }
 
   function loadLocalArticles() {
     try {
@@ -111,6 +187,16 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
+        <!-- GitHub Token Bar -->
+        <div class="admin-github-bar">
+          <div class="admin-github-bar-inner">
+            <span style="font-size:0.8rem;font-weight:500;color:#475569;white-space:nowrap">🌐 GitHub:</span>
+            <input type="password" id="githubTokenInput" class="admin-input" placeholder="Token de GitHub (ghp_...)" value="${getGitHubToken()}" style="flex:1;min-width:120px;font-size:0.75rem;padding:0.4rem 0.7rem" />
+            <button id="btnSaveToken" class="admin-btn admin-btn-small admin-btn-ghost" style="white-space:nowrap">💾 Guardar</button>
+            <span id="githubStatus" class="admin-github-status"></span>
+          </div>
+        </div>
+
         <!-- Tabs: Mis artículos locales / Exportar -->
         <div class="admin-tabs">
           <button class="admin-tab active" data-tab="local">Mis artículos</button>
@@ -137,6 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                   </div>
                   <div class="admin-article-item-actions">
+                    <button class="admin-btn-icon admin-btn-publish" data-action="publish" data-index="${i}" title="Publicar en GitHub 🌐">🌐</button>
                     <button class="admin-btn-icon" data-action="edit" data-index="${i}" title="Editar">✏️</button>
                     <button class="admin-btn-icon" data-action="delete" data-index="${i}" title="Eliminar">🗑️</button>
                   </div>
@@ -211,7 +298,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="admin-form-actions">
               <button type="button" id="cancelForm" class="admin-btn admin-btn-ghost">Cancelar</button>
-              <button type="submit" id="saveArticle" class="admin-btn admin-btn-primary">💾 Guardar artículo</button>
+              <button type="submit" id="saveArticle" class="admin-btn admin-btn-primary">💾 Guardar</button>
+              <button type="button" id="saveAndPublish" class="admin-btn admin-btn-publish-btn">🌐 Guardar y Publicar</button>
             </div>
           </form>
         </div>
@@ -340,6 +428,126 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     });
+
+    // ── GitHub: Save token ──
+    document.getElementById('btnSaveToken')?.addEventListener('click', () => {
+      const token = document.getElementById('githubTokenInput').value.trim();
+      if (!token) {
+        showToast('⚠️ Ingresa un token de GitHub', 'error');
+        return;
+      }
+      setGitHubToken(token);
+      showToast('✅ Token guardado en esta sesión', 'success');
+      document.getElementById('githubStatus').textContent = '✅ Token configurado';
+      document.getElementById('githubStatus').className = 'admin-github-status admin-github-ok';
+    });
+
+    // Restore token status on load
+    if (getGitHubToken()) {
+      setTimeout(() => {
+        const st = document.getElementById('githubStatus');
+        if (st) {
+          st.textContent = '✅ Token configurado';
+          st.className = 'admin-github-status admin-github-ok';
+        }
+      }, 100);
+    }
+
+    // ── GitHub: Publish article from list ──
+    document.querySelectorAll('[data-action="publish"]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const idx = parseInt(btn.dataset.index);
+        const article = localArticles[idx];
+        if (!article) return;
+
+        const token = getGitHubToken();
+        if (!token) {
+          showToast('⚠️ Primero configura tu token de GitHub arriba', 'error');
+          return;
+        }
+
+        btn.textContent = '⏳';
+        btn.disabled = true;
+        try {
+          await handlePublish(article, token);
+          showToast('✅ Publicado: ' + article.titulo, 'success');
+          btn.textContent = '✅';
+          setTimeout(() => { btn.textContent = '🌐'; btn.disabled = false; }, 2000);
+        } catch (e) {
+          showToast('❌ Error: ' + e.message, 'error');
+          btn.textContent = '❌';
+          setTimeout(() => { btn.textContent = '🌐'; btn.disabled = false; }, 3000);
+        }
+      });
+    });
+
+    // ── GitHub: Save and Publish ──
+    document.getElementById('saveAndPublish')?.addEventListener('click', async () => {
+      const article = buildArticleFromForm();
+      if (!article) {
+        showToast('⚠️ El título es obligatorio', 'error');
+        return;
+      }
+
+      const token = getGitHubToken();
+      if (!token) {
+        showToast('⚠️ Primero configura tu token de GitHub arriba', 'error');
+        return;
+      }
+
+      // Mostrar estado de carga
+      const btn = document.getElementById('saveAndPublish');
+      btn.textContent = '⏳ Publicando...';
+      btn.disabled = true;
+
+      try {
+        // Guardar local
+        saveArticle(article);
+
+        // Publicar en GitHub mientras el formulario sigue abierto
+        await handlePublish(article, token);
+
+        // Cerrar formulario y renderizar
+        closeForm();
+        render();
+        showToast('✅ Guardado y publicado para todos 🌎', 'success');
+      } catch (e) {
+        // Si falla, el artículo queda guardado localmente
+        closeForm();
+        render();
+        showToast('❌ Guardado local, error al publicar: ' + e.message, 'error');
+      }
+    });
+  }
+
+  // ── Toast Notification ──
+
+  function showToast(msg, type) {
+    // Remove existing toasts
+    document.querySelectorAll('.admin-toast').forEach(t => t.remove());
+
+    const toast = document.createElement('div');
+    toast.className = 'admin-toast admin-toast-' + (type || 'info');
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('admin-toast-visible'), 50);
+    setTimeout(() => {
+      toast.classList.remove('admin-toast-visible');
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
+  // ── Handle Publish to GitHub ──
+
+  async function handlePublish(article, token) {
+    if (article.imagen && article.imagen.startsWith('data:image')) {
+      if (article.imagen.length > 500000) {
+        throw new Error('La imagen local es muy grande (>500KB). Usa una URL externa (Imgur, Instagram) para publicar.');
+      }
+      showToast('⚠️ Las imágenes locales grandes no son ideales para GitHub. Se publicará igual pero considera usar URL externa.', 'warning');
+    }
+    return await publicarEnGitHub(article, token);
   }
 
   function openForm(article, index) {
@@ -384,13 +592,14 @@ document.addEventListener('DOMContentLoaded', () => {
     editingId = null;
   }
 
-  function saveArticleFromForm() {
+  // Extrae los datos del formulario como objeto artículo
+  function buildArticleFromForm() {
     const titulo = document.getElementById('formTitulo').value.trim();
-    if (!titulo) return;
+    if (!titulo) return null;
 
     const tags = document.getElementById('formTags').value.split(',').map(t => t.trim()).filter(Boolean);
     const imagen = document.getElementById('formImagen').value.trim();
-    const article = {
+    return {
       id: generateId(titulo),
       titulo,
       extracto: document.getElementById('formExtracto').value.trim() || previewContent(document.getElementById('formContenido').value),
@@ -400,16 +609,24 @@ document.addEventListener('DOMContentLoaded', () => {
       tags: tags.length ? tags : ['general'],
       contenido: document.getElementById('formContenido').value || '<p>Artículo en construcción...</p>',
     };
+  }
 
+  // Guarda un artículo en localStorage y actualiza la UI
+  function saveArticle(article) {
     const articles = loadLocalArticles();
     if (editingId !== null && editingId < articles.length) {
-      article.id = articles[editingId].id; // Keep same ID
+      article.id = articles[editingId].id; // Preservar ID
       articles[editingId] = article;
     } else {
       articles.push(article);
     }
-
     saveLocalArticles(articles);
+  }
+
+  function saveArticleFromForm() {
+    const article = buildArticleFromForm();
+    if (!article) return;
+    saveArticle(article);
     closeForm();
     render();
   }
