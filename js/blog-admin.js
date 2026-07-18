@@ -185,6 +185,17 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
             <div class="admin-form-group">
+              <label>URL de imagen destacada (opcional)</label>
+              <div style="display:flex;gap:8px;align-items:flex-start">
+                <input type="url" id="formImagen" class="admin-input" placeholder="https://ejemplo.com/mi-foto.jpg" style="flex:1" />
+                <button type="button" id="previewImgBtn" class="admin-btn admin-btn-small admin-btn-ghost" style="white-space:nowrap">🔍 Vista</button>
+              </div>
+              <div id="imagenPreview" style="display:none;margin-top:8px;border-radius:8px;overflow:hidden;max-height:150px">
+                <img id="imagenPreviewSrc" src="" alt="Preview" style="width:100%;height:100%;object-fit:cover" />
+              </div>
+              <p class="admin-form-hint">Pega la URL de una imagen (puedes subir fotos a Imgur, Instagram, o usar cualquier URL pública)</p>
+            </div>
+            <div class="admin-form-group">
               <label>Extracto (resumen que se ve en la tarjeta)</label>
               <textarea id="formExtracto" class="admin-textarea" rows="2" placeholder="Breve descripción del artículo..."></textarea>
             </div>
@@ -224,6 +235,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // New article
     document.getElementById('btnNewArticle')?.addEventListener('click', () => openForm(null));
+
+    // Preview image
+    document.getElementById('previewImgBtn')?.addEventListener('click', () => {
+      const url = document.getElementById('formImagen').value.trim();
+      const preview = document.getElementById('imagenPreview');
+      const img = document.getElementById('imagenPreviewSrc');
+      if (url) {
+        img.src = url;
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+    });
 
     // Close form
     document.getElementById('closeForm')?.addEventListener('click', closeForm);
@@ -277,12 +301,17 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('formTitulo').value = article.titulo || '';
       document.getElementById('formFecha').value = article.fecha || today();
       document.getElementById('formTags').value = (article.tags || []).join(', ');
+      document.getElementById('formImagen').value = article.imagen || '';
+      document.getElementById('imagenPreview').style.display = article.imagen ? 'block' : 'none';
+      if (article.imagen) document.getElementById('imagenPreviewSrc').src = article.imagen;
       document.getElementById('formExtracto').value = article.extracto || '';
       document.getElementById('formContenido').value = article.contenido || '';
     } else {
       document.getElementById('formTitulo').value = '';
       document.getElementById('formFecha').value = today();
       document.getElementById('formTags').value = '';
+      document.getElementById('formImagen').value = '';
+      document.getElementById('imagenPreview').style.display = 'none';
       document.getElementById('formExtracto').value = '';
       document.getElementById('formContenido').value = '';
     }
@@ -301,13 +330,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!titulo) return;
 
     const tags = document.getElementById('formTags').value.split(',').map(t => t.trim()).filter(Boolean);
+    const imagen = document.getElementById('formImagen').value.trim();
     const article = {
       id: generateId(titulo),
       titulo,
       extracto: document.getElementById('formExtracto').value.trim() || previewContent(document.getElementById('formContenido').value),
       fecha: document.getElementById('formFecha').value.trim() || today(),
       autor: 'Patricio Almendra',
-      imagen: '',
+      imagen: imagen,
       tags: tags.length ? tags : ['general'],
       contenido: document.getElementById('formContenido').value || '<p>Artículo en construcción...</p>',
     };
@@ -346,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
       result += "    extracto: '" + escapeJs(art.extracto) + "',\n";
       result += "    fecha: '" + escapeJs(art.fecha) + "',\n";
       result += "    autor: '" + escapeJs(art.autor) + "',\n";
-      result += "    imagen: '',\n";
+      result += "    imagen: '" + escapeJs(art.imagen || '') + "',\n";
       result += '    tags: [';
       for (var j = 0; j < art.tags.length; j++) {
         if (j > 0) result += ', ';

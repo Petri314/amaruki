@@ -77,6 +77,17 @@
   transform: scale(1.05);
 }
 
+.blog-card-img-real {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+
+.blog-card:hover .blog-card-img-real {
+  transform: scale(1.08);
+}
+
 .blog-card-tag {
   position: absolute;
   top: 12px;
@@ -292,6 +303,15 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 2.5rem;
+}
+
+.blog-article-img-real {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  margin-bottom: 2.5rem;
+  display: block;
 }
 
 /* Article content */

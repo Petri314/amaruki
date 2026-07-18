@@ -94,12 +94,16 @@ document.addEventListener('DOMContentLoaded', () => {
       html += `
         <article class="blog-card" data-aos style="transition-delay:${idx * 0.07}s">
           <div class="blog-card-image">
-            <div class="blog-card-img-placeholder" style="background:linear-gradient(135deg, ${tagColor}15, ${tagColor}05)">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="${tagColor}" stroke-width="1.2">
-                <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
-              </svg>
-            </div>
+            ${art.imagen ? `
+              <img class="blog-card-img-real" src="${art.imagen}" alt="${art.titulo}" loading="lazy" />
+            ` : `
+              <div class="blog-card-img-placeholder" style="background:linear-gradient(135deg, ${tagColor}15, ${tagColor}05)">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="${tagColor}" stroke-width="1.2">
+                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+                </svg>
+              </div>
+            `}
             <span class="blog-card-tag" style="background:${tagColor}20;color:${tagColor}">${tag}</span>
           </div>
           <div class="blog-card-body">
@@ -196,13 +200,16 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </header>
 
-          <!-- Image placeholder -->
-          <div class="blog-article-image" style="background:linear-gradient(135deg, ${tagColor}20, ${tagColor}08)">
-            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="${tagColor}" stroke-width="1">
-              <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
-            </svg>
-          </div>
+          ${art.imagen ? `
+            <img class="blog-article-img-real" src="${art.imagen}" alt="${art.titulo}" />
+          : `
+            <div class="blog-article-image" style="background:linear-gradient(135deg, ${tagColor}20, ${tagColor}08)">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="${tagColor}" stroke-width="1">
+                <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+              </svg>
+            </div>
+          `}
 
           <!-- Content -->
           <div class="blog-article-content">
