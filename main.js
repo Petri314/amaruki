@@ -45,17 +45,26 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ── SCROLL ANIMATIONS (Intersection Observer) ── */
-  const aosElements = document.querySelectorAll('[data-aos]');
+  // Soporta: data-aos, data-aos-scale, data-aos-left, data-aos-right, data-aos-zoom
+  const aosSelectors = [
+    '[data-aos]',
+    '[data-aos-scale]',
+    '[data-aos-left]',
+    '[data-aos-right]',
+    '[data-aos-zoom]',
+  ];
+  const aosElements = document.querySelectorAll(aosSelectors.join(','));
 
   const aosObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('visible');
-        // Add stagger delay for children
+
+        // Add stagger delay for children within a stagger container
         const parent = entry.target.closest('[data-aos-stagger]');
         if (parent) {
-          const children = parent.querySelectorAll('[data-aos]');
-          children.forEach((child, i) => {
+          const allVariants = parent.querySelectorAll(aosSelectors.join(','));
+          allVariants.forEach((child, i) => {
             setTimeout(() => {
               child.classList.add('visible');
             }, i * 100);
@@ -70,9 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   aosElements.forEach(el => aosObserver.observe(el));
 
-  // Also handle stagger containers
+  // Also observe children inside stagger containers
   document.querySelectorAll('[data-aos-stagger]').forEach(container => {
-    const children = container.querySelectorAll('[data-aos]');
+    const children = container.querySelectorAll(aosSelectors.join(','));
     children.forEach(child => aosObserver.observe(child));
   });
 
