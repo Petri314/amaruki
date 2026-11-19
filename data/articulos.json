@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "hola-es-una-prueba",
+    "titulo": "hola es una prueba",
+    "extracto": "dfg",
+    "fecha": "18 Noviembre, 2026",
+    "autor": "Patricio Almendra",
+    "imagen": "",
+    "tags": [
+      "general"
+    ],
+    "contenido": "<p>fgdfh</p>"
+  }
+]
