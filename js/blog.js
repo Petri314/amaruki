@@ -36,8 +36,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       const stored = localStorage.getItem(ADMIN_KEY);
       if (stored) localArticles = JSON.parse(stored);
     } catch {}
-    // Orden: primero los publicados (para que aparezcan primero), luego locales, luego fijos
-    return [...ARTICULOS_PUBLICADOS, ...localArticles, ...ARTICULOS];
+    // Orden: primero los publicados (para que aparezcan primero), luego locales, luego fijos.
+    // Se deduplica por id: gana la primera aparición, así un artículo publicado
+    // no vuelve a salir desde blog-data.js ni desde un borrador local.
+    const vistos = new Set();
+    const unicos = [];
+    for (const art of [...ARTICULOS_PUBLICADOS, ...localArticles, ...ARTICULOS]) {
+      if (!art || !art.id || vistos.has(art.id)) continue;
+      vistos.add(art.id);
+      unicos.push(art);
+    }
+    return unicos;
   }
 
   // ── Helpers ──
@@ -85,7 +94,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderLista() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     document.title = 'Blog — Amaruki';
-    history.replaceState(null, '', window.location.pathname);
+    // Solo limpia el hash si venimos de un artículo; no crea entradas nuevas
+    if (window.location.hash) history.replaceState(null, '', window.location.pathname);
 
     const allArticles = getAllArticles();
 
@@ -165,7 +175,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         const id = btn.getAttribute('data-id');
-        renderArticulo(id);
+        navigateTo(id);
       });
     });
   }
@@ -179,7 +189,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
     document.title = `${art.titulo || 'Artículo'} — Amaruki`;
-    history.replaceState(null, '', `#/articulo/${art.id}`);
 
     const tagColor = getTagColor(art.tags?.[0] || 'general');
 
@@ -273,7 +282,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Back button
     document.getElementById('blogBack')?.addEventListener('click', (e) => {
       e.preventDefault();
-      renderLista();
+      // Si el artículo se abrió con pushState, retrocede en el historial
+      // (así el botón Adelante del navegador vuelve al artículo).
+      if (history.state && history.state.articulo) {
+        history.back();
+      } else {
+        renderLista();
+      }
     });
 
     // Nav links
@@ -281,7 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         const id = link.getAttribute('data-id');
-        renderArticulo(id);
+        navigateTo(id);
       });
     });
 
@@ -292,6 +307,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ── Hash Routing ──
+
+  // Navegar a un artículo deja una entrada en el historial, para que el
+  // botón Atrás del navegador vuelva a la lista.
+  function navigateTo(id) {
+    history.pushState({ articulo: id }, '', `#/articulo/${id}`);
+    renderArticulo(id);
+  }
 
   function handleRoute() {
     const hash = window.location.hash;
@@ -307,5 +329,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadArticulosPublicados();
   handleRoute();
-  window.addEventListener('hashchange', handleRoute);
+  // popstate (no hashchange): las navegaciones del blog usan pushState
+  window.addEventListener('popstate', handleRoute);
 });

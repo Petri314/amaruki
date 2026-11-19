@@ -7,7 +7,8 @@
    ═══════════════════════════════════════════════════════ */
 
 const ADMIN_KEY = 'amaruki_blog_articles';
-const ADMIN_PASSWORD = 'amaruki2026';
+// Este panel es un archivo estático público: no puede guardar contraseñas.
+// La autenticación real es el token de GitHub, que solo tú tienes.
 const GITHUB_OWNER = 'Petri314';
 const GITHUB_REPO = 'amaruki';
 const GITHUB_PATH = 'data/articulos.json';
@@ -17,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const app = document.getElementById('admin-app');
   if (!app) return;
 
-  let isAuthenticated = sessionStorage.getItem('amaruki_admin_auth') === 'true';
   let localArticles = loadLocalArticles();
   let editingId = null;
 
@@ -31,6 +31,25 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionStorage.setItem('amaruki_github_token', token);
   }
 
+  // ── Base64 ↔ UTF-8 (atob/btoa manejan bytes, no texto: sin esto los acentos se corrompen) ──
+
+  function base64ATexto(b64) {
+    const bin = atob(b64.replace(/\s/g, ''));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder('utf-8').decode(bytes);
+  }
+
+  function textoABase64(texto) {
+    const bytes = new TextEncoder().encode(texto);
+    let bin = '';
+    const bloque = 0x8000;
+    for (let i = 0; i < bytes.length; i += bloque) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + bloque));
+    }
+    return btoa(bin);
+  }
+
   // ── GitHub API ──
 
   async function getArticulosJsonSha(token) {
@@ -41,8 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
       );
       if (!resp.ok) return { sha: null, articles: [] };
       const data = await resp.json();
-      const content = atob(data.content.replace(/\n/g, ''));
-      const articles = JSON.parse(content);
+      const articles = JSON.parse(base64ATexto(data.content));
       return { sha: data.sha, articles: Array.isArray(articles) ? articles : [] };
     } catch (e) {
       return { sha: null, articles: [] };
@@ -64,9 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
       articles.unshift(article); // Agregar al inicio (más reciente primero)
     }
 
-    // Codificar a base64
+    // Codificar a base64 respetando UTF-8
     const jsonStr = JSON.stringify(articles, null, 2);
-    const content = btoa(unescape(encodeURIComponent(jsonStr)));
+    const content = textoABase64(jsonStr);
 
     // Hacer commit
     const resp = await fetch(
@@ -130,40 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function render() {
     destroyEditor(); // Destroy Quill before replacing DOM
-    if (!isAuthenticated) {
-      renderLogin();
-      return;
-    }
     renderAdmin();
-  }
-
-  function renderLogin() {
-    app.innerHTML = `
-      <div class="admin-login">
-        <div class="admin-login-card">
-          <div class="admin-login-icon">🔐</div>
-          <h2>Panel de Administración</h2>
-          <p>Ingresa la contraseña para gestionar los artículos del blog.</p>
-          <form id="loginForm">
-            <input type="password" id="passwordInput" placeholder="Contraseña" class="admin-input" autofocus />
-            <button type="submit" class="admin-btn admin-btn-primary">Ingresar</button>
-          </form>
-          <p id="loginError" class="admin-error" style="display:none">Contraseña incorrecta</p>
-        </div>
-      </div>
-    `;
-
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const pw = document.getElementById('passwordInput').value;
-      if (pw === ADMIN_PASSWORD) {
-        isAuthenticated = true;
-        sessionStorage.setItem('amaruki_admin_auth', 'true');
-        render();
-      } else {
-        document.getElementById('loginError').style.display = 'block';
-      }
-    });
   }
 
   function renderAdmin() {
@@ -182,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Nuevo artículo
             </button>
-            <button id="btnLogout" class="admin-btn admin-btn-ghost" title="Cerrar sesión">
+            <button id="btnClearToken" class="admin-btn admin-btn-ghost" title="Borrar el token de esta sesión">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
           </div>
@@ -196,6 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <button id="btnSaveToken" class="admin-btn admin-btn-small admin-btn-ghost" style="white-space:nowrap">💾 Guardar</button>
             <span id="githubStatus" class="admin-github-status"></span>
           </div>
+          <p style="margin:0.5rem 0 0;font-size:0.72rem;color:#94A3B8;line-height:1.4">
+            Este panel no tiene contraseña: es un archivo público. Sin token puedes crear borradores que solo existen en este navegador; para publicar necesitas un token con permiso <strong>contents: write</strong> en <code>Petri314/amaruki</code>.
+          </p>
         </div>
 
         <!-- Tabs: Mis artículos locales / Exportar -->
@@ -309,10 +297,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Event listeners ──
 
-    // Logout
-    document.getElementById('btnLogout')?.addEventListener('click', () => {
-      isAuthenticated = false;
-      sessionStorage.removeItem('amaruki_admin_auth');
+    // Borrar token de la sesión
+    document.getElementById('btnClearToken')?.addEventListener('click', () => {
+      sessionStorage.removeItem('amaruki_github_token');
       render();
     });
 
