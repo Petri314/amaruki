@@ -23,12 +23,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Helpers ──
 
+  // El token se guarda en este navegador (localStorage) para no tener que
+  // pegarlo cada vez que publiques. Usa un token con permiso mínimo:
+  // solo el repo amaruki y Contents: Read and write.
   function getGitHubToken() {
-    return sessionStorage.getItem('amaruki_github_token') || '';
+    return localStorage.getItem('amaruki_github_token') || '';
   }
 
   function setGitHubToken(token) {
-    sessionStorage.setItem('amaruki_github_token', token);
+    localStorage.setItem('amaruki_github_token', token);
   }
 
   // ── Base64 ↔ UTF-8 (atob/btoa manejan bytes, no texto: sin esto los acentos se corrompen) ──
@@ -182,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span id="githubStatus" class="admin-github-status"></span>
           </div>
           <p style="margin:0.5rem 0 0;font-size:0.72rem;color:#94A3B8;line-height:1.4">
-            Este panel no tiene contraseña: es un archivo público. Sin token puedes crear borradores que solo existen en este navegador; para publicar necesitas un token con permiso <strong>contents: write</strong> en <code>Petri314/amaruki</code>.
+            Este panel no tiene contraseña: es un archivo público. Sin token puedes crear borradores que solo existen en este navegador; para publicar necesitas un token con permiso <strong>contents: write</strong> en <code>Petri314/amaruki</code>. El token se guarda en este navegador (bórralo con el botón de arriba si usas un computador compartido).
           </p>
         </div>
 
@@ -274,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <img id="imagenPreviewSrc" src="" alt="Preview" style="width:100%;height:100%;object-fit:cover" />
               </div>
               <div id="fileInfo" class="admin-form-hint" style="display:none"></div>
-              <p class="admin-form-hint">📎 Puedes pegar una URL <strong>o</strong> seleccionar una imagen local</p>
+              <p class="admin-form-hint">📎 Pega una URL externa, una ruta del repo como <code>images/blog/mi-foto.jpg</code> <strong>o</strong> elige un archivo local (solo queda en este navegador).</p>
             </div>
             <div class="admin-form-group">
               <label>Extracto (resumen que se ve en la tarjeta)</label>
@@ -299,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Borrar token de la sesión
     document.getElementById('btnClearToken')?.addEventListener('click', () => {
+      localStorage.removeItem('amaruki_github_token');
       sessionStorage.removeItem('amaruki_github_token');
       render();
     });
@@ -425,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       setGitHubToken(token);
-      showToast('✅ Token guardado en esta sesión', 'success');
+      showToast('✅ Token guardado en este navegador', 'success');
       document.getElementById('githubStatus').textContent = '✅ Token configurado';
       document.getElementById('githubStatus').className = 'admin-github-status admin-github-ok';
     });
